@@ -129,7 +129,7 @@ namespace Spacebuilder.Webim.Controllers
                     buddies = buddyArray,
                     groups = groupArray,
                     rooms = groupArray,
-                    service_time = Timestamp(),
+                    server_time = Timestamp(),
                     user = client.Endpoint.Data()
                 }, JsonRequestBehavior.AllowGet);
 
