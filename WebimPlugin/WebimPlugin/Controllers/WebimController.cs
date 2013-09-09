@@ -27,6 +27,8 @@ namespace Spacebuilder.Webim.Controllers
         [HttpGet]
         public ActionResult Run()
         {
+			long uid = webimService.CurrentUid();
+            string setting = webimService.GetSetting(uid);
             string body = string.Format(@"var _IMC = {{
 	            production_name: 'dotnet',
 	            version: '1.0',
@@ -317,8 +319,8 @@ namespace Spacebuilder.Webim.Controllers
         }
 
         private double Timestamp()
-        {
-            return (DateTime.UtcNow - new DateTime(2012, 10, 10, 14, 0, 0)).TotalSeconds;
+       {
+            return (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds;
         }
     }
 }
