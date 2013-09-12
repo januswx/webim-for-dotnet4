@@ -256,7 +256,7 @@ namespace Webim
         private Dictionary<string, object> NewData()
         {
             Dictionary<string, object> data = new Dictionary<string, object>();
-            data.Add("version", "v4");
+            data.Add("version", "v5");
             data.Add("domain", Domain);
             data.Add("apikey", apikey);
             data.Add("ticket", Ticket);
@@ -289,7 +289,7 @@ namespace Webim
             {
                 path = "/" + path;
             }
-            return "http://" + host + ":" + port.ToString() + "/v4" + path;
+            return "http://" + host + ":" + port.ToString() + "/v5" + path;
         }
 
     }

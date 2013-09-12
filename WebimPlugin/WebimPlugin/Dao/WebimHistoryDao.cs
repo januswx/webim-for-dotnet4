@@ -14,12 +14,12 @@ namespace Webim
         }
 
         //TODO: QUERY DATABASE
-        public IEnumerable<WebimHistory> GetHistories(long uid, string with, string type = "unicast", int limit = 30)
+        public IEnumerable<WebimHistory> GetHistories(long uid, string with, string type = "chat", int limit = 30)
         {
-            if (type == "unicast")
+            if (type == "chat")
             {
                 /*
-                "SELECT * FROM webim_Histories WHERE `type` = 'unicast' 
+                "SELECT * FROM webim_Histories WHERE `type` = 'chat' 
                 AND ((`to`=%s AND `from`=%s AND `fromdel` != 1) 
                 OR (`send` = 1 AND `from`=%s AND `to`=%s AND `todel` != 1))  
                 ORDER BY timestamp DESC LIMIT %d", $with, $uid, $with, $uid, $limit );
@@ -29,7 +29,7 @@ namespace Webim
             {
                 /*
                 "SELECT * FROM  spb_Webim_Histories 
-                    WHERE `to`=%s AND `type`='multicast' AND send = 1 
+                    WHERE `to`=%s AND `type`='grpchat' AND send = 1 
                     ORDER BY timestamp DESC LIMIT %d", , $with, $limit);
                 */
             }
@@ -39,8 +39,8 @@ namespace Webim
         //TODO: QUERY DATABASE
         public void ClearHistories(long uid, string with)
         {
-            //"UPDATE spb_Webim_Histories SET fromdel = 1 Where from = @0 and to = @1 and type = 'unicast'"
-            //"UPDATE spb_Webim_Histories SET todel = 1 Where to = @0 and from = @1 and type = 'unicast'"
+            //"UPDATE spb_Webim_Histories SET fromdel = 1 Where from = @0 and to = @1 and type = 'chat'"
+            //"UPDATE spb_Webim_Histories SET todel = 1 Where to = @0 and from = @1 and type = 'chat'"
             //"DELETE FROM spb_Webim_Histories WHERE fromdel = 1 AND todel = 1"
         }
 
