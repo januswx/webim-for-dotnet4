@@ -9,8 +9,8 @@ namespace Webim
         public static string VERSION = "1.0";
         public static string DOMAIN = "dotnet.webim20.cn";
         public static string APIKEY = "460cf5d46be2c04e";
-        public static string HOST = "webim20.cn";
-        public static int PORT = 8888;
+        public static string HOST = "nextalk.im";
+        public static int PORT = 8000;
     }
 
 }

@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Json;
 using Webim;
 
-namespace Spacebuilder.Webim.Controllers
+namespace Webim.Controllers
 {
     public class WebimController : Controller
     {
@@ -38,7 +38,9 @@ namespace Spacebuilder.Webim.Controllers
 	            user: '',
 	            setting: '',
 	            menu: '',
-	            disable_chatlink: '',
+				disable_room: false,
+				disable_noti: false,
+	            disable_chatlink: true,
 	            enable_shortcut: '',
 	            disable_menu: 'true',
 	            theme: 'base',

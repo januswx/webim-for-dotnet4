@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 using Webim;
 
-namespace Spacebuilder.Webim
+namespace Webim
 {
     public class WebimService
     {
