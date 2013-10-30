@@ -3,23 +3,23 @@
 	var path = _IMC.path;
 	var aspx = _IMC.aspx ? ".aspx" : "";
 	webim.extend(webim.setting.defaults.data, _IMC.setting);
-	webim.route( {
+	webim.route({
 		online: path + "Online" + aspx,
 		offline: path + "Offline" + aspx,
 		message: path + "Message" + aspx,
 		presence: path + "Presence" + aspx,
-		refresh: path + "Refresh" + aspx,
+		deactivate: path + "Refresh" + aspx,
 		status: path + "Status" + aspx,
 		setting: path + "Setting" + aspx,
 		history: path + "History" + aspx,
 		clear: path + "ClearHistory" + aspx,
 		download: path + "DownloadHistory" + aspx,
-		member: path + "Members" + aspx,
+		members: path + "Members" + aspx,
 		join: path + "Join" + aspx,
 		leave: path + "Leave" + aspx,
 		buddies: path + "Buddies" + aspx,
 		notifications: path + "Notifications" + aspx
-	} );
+	});
 	webim.ui.emot.init({ "dir": _IMC.uiPath + "static/images/emot/default" });
 	var soundUrls = {
 		lib: _IMC.uiPath + "static/assets/sound.swf",
