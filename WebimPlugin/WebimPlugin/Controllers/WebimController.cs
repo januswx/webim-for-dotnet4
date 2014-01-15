@@ -25,7 +25,7 @@ namespace Webim.Controllers
 
         // GET: /Webim/Run
         [HttpGet]
-        public ActionResult Run()
+        public ActionResult Boot()
         {
 			long uid = webimService.CurrentUid();
             string setting = webimService.GetSetting(uid);
@@ -38,19 +38,20 @@ namespace Webim.Controllers
 	            user: '',
 	            setting: '',
 	            menu: '',
-				disable_room: false,
-				disable_noti: false,
-	            disable_chatlink: true,
+				enable_room: true,
+				enable_noti: true,
+	            enable_chatlink: false,
 	            enable_shortcut: '',
-	            disable_menu: 'true',
+	            enable_menu: 'false',
 	            theme: 'base',
 	            local: 'zh-CN',
                 aspx: false,
+                show_unavailable: false,
 	            min: """" //window.location.href.indexOf(""webim_debug"") != -1 ? """" : "".min""
             }};
             
-            _IMC.script = window.webim ? '' : ('<link href=""' + _IMC.uiPath + 'static/webim.'+ _IMC.production_name + _IMC.min + '.css?' + _IMC.version + '"" media=""all"" type=""text/css"" rel=""stylesheet""/><link href=""' + _IMC.uiPath + 'static/themes/' + _IMC.theme + '/jquery.ui.theme.css?' + _IMC.version + '"" media=""all"" type=""text/css"" rel=""stylesheet""/><script src=""' + _IMC.uiPath + 'static/webim.' + _IMC.production_name + _IMC.min + '.js?' + _IMC.version + '"" type=""text/javascript""></script><script src=""' + _IMC.uiPath + 'static/i18n/webim-' + _IMC.local + '.js?' + _IMC.version + '"" type=""text/javascript""></script>');
-            _IMC.script += '<script src=""' + _IMC.uiPath + 'webim.js?' + _IMC.version + '"" type=""text/javascript""></script>';
+            _IMC.script = window.webim ? '' : ('<link href=""' + _IMC.uiPath + 'static/webim' + _IMC.min + '.css?' + _IMC.version + '"" media=""all"" type=""text/css"" rel=""stylesheet""/><link href=""' + _IMC.uiPath + 'static/themes/' + _IMC.theme + '/jquery.ui.theme.css?' + _IMC.version + '"" media=""all"" type=""text/css"" rel=""stylesheet""/><script src=""' + _IMC.uiPath + 'static/webim' + _IMC.min + '.js?' + _IMC.version + '"" type=""text/javascript""></script><script src=""' + _IMC.uiPath + 'static/i18n/webim-' + _IMC.local + '.js?' + _IMC.version + '"" type=""text/javascript""></script>');
+            _IMC.script += '<script src=""' + _IMC.uiPath + 'webim.' + _IMC.production_name + '.js?' + _IMC.version + '"" type=""text/javascript""></script>';
             document.write( _IMC.script );
 
             ", ("/Webim/"), ("/UI/"));
@@ -75,6 +76,13 @@ namespace Webim.Controllers
                 JsonObject json = client.Online(buddyIds, groupIds);
                 Debug.WriteLine(json.ToString());
 
+                if(json.ContainsKey("status")) {
+                    return Json(
+                        new { success = false, error_msg =  json["message"] },
+                        JsonRequestBehavior.AllowGet
+                    );
+                }
+
                 Dictionary<string, string> conn = new Dictionary<string, string>();
                 conn.Add("ticket", (string)json["ticket"]);
                 conn.Add("domain", client.Domain);
@@ -82,33 +90,25 @@ namespace Webim.Controllers
                 conn.Add("server", (string)json["jsonpd"]);
                 conn.Add("websocket", (string)json["websocket"]);
 
-                //Online Buddies
-                Dictionary<string, WebimEndpoint> buddyDict = new Dictionary<string, WebimEndpoint>();
-                foreach (WebimEndpoint e in buddies)
-                {
-                    buddyDict[e.Id] = e;
-                }
-                List<WebimEndpoint> onlines = new List<WebimEndpoint>();
-                foreach (JsonValue v in (JsonArray)json["buddies"])
-                {
-                    JsonObject o = (JsonObject)v;
-                    onlines.Add(buddyDict[(string)o["name"]]);
-                }
 
+                JsonObject presenceObj = json["buddies"];
+
+                //Update Buddies 
+                foreach (WebimEndpoint b in buddies)
+                {
+                    if(presenceObj.ContainsKey(b.Id)) {
+                        b.Presence = "online";
+                        b.Show = presenceObj[b.Id];
+                    }
+                }
+                
                 //Groups with count
-                Dictionary<string, WebimGroup> groupDict = new Dictionary<string, WebimGroup>();
+                JsonObject grpCountObj = json["groups"];
                 foreach (WebimGroup g in groups)
                 {
-                    groupDict[g.Id] = g;
-                }
-                List<WebimGroup> groups1 = new List<WebimGroup>();
-                foreach (JsonValue v in (JsonArray)json["groups"])
-                {
-                    JsonObject o = (JsonObject)v;
-                    string gid = (string)o["name"];
-                    WebimGroup group = groupDict[gid];
-                    group.Count = (int)o["total"];
-                    groups1.Add(group);
+                    if(grpCountObj.ContainsKey[g.Id]) {
+                        g.Count = (int)grpCountObj[g.Id];
+                    }
                 }
 
                 //{"success":true,
@@ -124,8 +124,8 @@ namespace Webim.Controllers
                 // "new_messages":[]}
 
 
-                var buddyArray = (from b in onlines select b.Data()).ToArray();
-                var groupArray = (from g in groups1 select g.Data()).ToArray();
+                var buddyArray = (from b in buddies select b.Data()).ToArray();
+                var groupArray = (from g in groups select g.Data()).ToArray();
                 return Json(new
                 {
                     success = true,
@@ -138,10 +138,10 @@ namespace Webim.Controllers
                 }, JsonRequestBehavior.AllowGet);
 
             }
-            catch (WebimException)
+            catch (Exception e)
             {
                 return Json(
-                    new { success = false, error_msg = "IM Server is not found" },
+                    new { success = false, error_msg =  e.ToString()},
                     JsonRequestBehavior.AllowGet
                 );
             }
@@ -321,8 +321,8 @@ namespace Webim.Controllers
         }
 
         private double Timestamp()
-       {
-            return (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds;
+        {
+            return (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds*1000;
         }
     }
 }

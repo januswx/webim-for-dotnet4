@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net.Http;
+using System.Net;
+using System.IO;
 using System.Json;
 
 namespace Webim
@@ -43,6 +44,11 @@ namespace Webim
             get { return domain; }
         }
 
+        /**
+         * User Online
+         * 
+         * @return JsonObject
+         */
         public JsonObject Online(IEnumerable<string> buddies, IEnumerable<string> groups)
         {
             Dictionary<string, object> data = NewData();
@@ -54,16 +60,9 @@ namespace Webim
             data.Add("nick", ep.Nick);
             data.Add("status", ep.Status);
             data.Add("show", ep.Show);
-            try
-            {
-                JsonObject json = HttpPost("/presences/online", data);
-                this.ticket = (string)json["ticket"];
-                return json;
-            }
-            catch (System.Exception e)
-            {
-                throw new WebimException(500, e.Message);
-            }
+            JsonObject json = HttpPost("/presences/online", data);
+            this.ticket = (string)json["ticket"];
+            return json;
         }
 
 
@@ -71,19 +70,12 @@ namespace Webim
         * User Offline
         *
         * @return JsonObject "{'status': 'ok'}" or "{'status': 'error', 'message': 'blabla'}"
-        * @throws WebIMException
+        * @throws Exception
         */
         public JsonObject Offline()
         {
             Dictionary<string, object> data = NewData();
-            try
-            {
-                return HttpPost("/presences/offline", data);
-            }
-            catch (Exception e)
-            {
-                throw new WebimException(500, e.Message);
-            }
+            return HttpPost("/presences/offline", data);
         }
 
         /**
@@ -91,139 +83,131 @@ namespace Webim
         *
         * @param presence
         * @return JsonObject "{'status': 'ok'}" or "{'status': 'error', 'message': 'blabla'}"
-        * @throws WebIMException
+        * @throws Exception
         */
         public JsonObject Publish(WebimPresence presence)
         {
             Dictionary<string, object> data = NewData();
             data.Add("nick", ep.Nick);
             presence.feed(data);
-            try
-            {
-                return HttpPost("/presences/show", data);
-            }
-            catch (Exception e)
-            {
-                throw new WebimException(500, e.Message);
-            }
+            return HttpPost("/presences/show", data);
         }
 
         /**
         * Publish status
         * @param status
         * @return JsonObject "{'status': 'ok'}" or "{'status': 'error', 'message': 'blabla'}"
-        * @throws WebIMException
+        * @throws Exception
         */
         public JsonObject Publish(WebimStatus status)
         {
             Dictionary<string, object> data = NewData();
             data.Add("nick", ep.Nick);
             status.feed(data);
-            try
-            {
-                return HttpPost("/statuses", data);
-            }
-            catch (Exception e)
-            {
-                throw new WebimException(500, e.Message);
-            }
+            return HttpPost("/statuses", data);
         }
 
         /**
         * Publish Message
         * @param message
         * @return JsonObject "{'status': 'ok'}" or "{'status': 'error', 'message': 'blabla'}"
-        * @throws WebIMException
+        * @throws Exception
         */
         public JsonObject Publish(WebimMessage message)
         {
             Dictionary<string, object> data = NewData();
             message.feed(data);
-            try
-            {
-                return HttpPost("/messages", data);
-            }
-            catch (Exception e)
-            {
-                throw new WebimException(500, e.Message);
-            }
+            return HttpPost("/messages", data);
+        }
+
+        /**
+        * Push Message, no need to be online
+        * @param from
+        * @param message
+        * @return JsonObject "{'status': 'ok'}" or "{'status': 'error', 'message': 'blabla'}"
+        * @throws Exception
+        */
+        public JsonObject Publish(String from, WebimMessage message)
+        {
+            Dictionary<string, object> data = NewData();
+            data.Add("from", from);
+            message.feed(data);
+            return HttpPost("/messages", data);
+        }
+
+        /**
+        * Get presences
+        * @param grpid
+        * @return member list
+        * @throws Exception
+        */
+        public JsonObject Presences(IEnumerable<string> ids)
+        {
+            Dictionary<string, object> data = NewData();
+            data.Add("ids", this.ListJoin(",", ids));
+            return HttpGet("/presences", data);
         }
 
         /**
         * Get group members
         * @param grpid
         * @return member list
-        * @throws WebIMException
+        * @throws Exception
         */
         public JsonObject Members(string grpid)
         {
 
             Dictionary<string, object> data = NewData();
             data.Add("group", grpid);
-            try
-            {
-                return HttpGet("/group/members", data);
-            }
-            catch (Exception e)
-            {
-                throw new WebimException(500, e.Message);
-            }
+            return HttpGet("/group/members", data);
         }
 
         /**
         * Join Group
         * @param grpid
         * @return JsonObject "{'id': 'grpid', 'count': '0'}"
-        * @throws WebIMException
+        * @throws Exception
         */
         public JsonObject Join(string grpid)
         {
             Dictionary<string, object> data = NewData();
             data.Add("nick", ep.Nick);
             data.Add("group", grpid);
-            try
-            {
-                JsonObject respObj = HttpPost("/group/join", data);
-                JsonObject rtObj = new JsonObject();
-                rtObj.Add("id", grpid);
-                rtObj.Add("count", (int)respObj.GetValue(grpid));
-                return rtObj;
-            }
-            catch (Exception e)
-            {
-                throw new WebimException(500, e.Message);
-            }
+            JsonObject respObj = HttpPost("/group/join", data);
+            return new JsonObject();
         }
 
         /**
         * Leave Group
         * @param grpid
         * @return JsonObject "{'status': 'ok'}" or "{'status': 'error', 'message': 'blabla'}"
-        * @throws WebIMException
+        * @throws Exception
         */
         public JsonObject Leave(string grpid)
         {
             Dictionary<string, object> data = NewData();
             data.Add("nick", ep.Nick);
             data.Add("group", grpid);
-            try
-            {
-                return HttpPost("/group/leave", data);
-            }
-            catch (Exception e)
-            {
-                throw new WebimException(500, e.Message);
-            }
+            return HttpPost("/group/leave", data);
         }
 
         private JsonObject HttpGet(string path, Dictionary<string, object> parameters)
         {
             String url = this.ApiUrl(path);
-            HttpClient client = new HttpClient();
-            HttpResponseMessage response = client.GetAsync(url + "?" + UrlEncode(parameters)).Result;
-            response.EnsureSuccessStatusCode();
-            string content = response.Content.ReadAsStringAsync().Result;
-            return (JsonObject)JsonObject.Parse(content);
+            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(url + "?" + UrlEncode(parameters));
+            using (var response = req.GetResponse())
+            {
+                using (StreamReader sr = new StreamReader(response.GetResponseStream()))
+                {
+                    string strRecv = sr.ReadToEnd();
+                    return (JsonObject)JsonObject.Parse(strRecv);
+                }
+            }
+            //HttpClient client = new HttpClient();
+            //HttpResponseMessage response = client.GetAsync(url + "?" + UrlEncode(parameters)).Result;
+            //response.EnsureSuccessStatusCode();
+            //string content = response.Content.ReadAsStringAsync().Result;
+            //return (JsonObject)JsonObject.Parse(content);
         }
 
         private string UrlEncode(Dictionary<string, object> parameters)
@@ -240,17 +224,36 @@ namespace Webim
         private JsonObject HttpPost(string path, Dictionary<string, object> data)
         {
             String url = this.ApiUrl(path);
-            HttpClient client = new HttpClient();
-            Dictionary<string, string> formData = new Dictionary<string, string>();
-            foreach(KeyValuePair<string, object> kv in data)
+            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(url);
+            Encoding encoding = Encoding.UTF8;
+            byte[] bs = Encoding.UTF8.GetBytes(UrlEncode(data));
+            req.Method = "POST";
+            req.ContentType = "application/x-www-form-urlencoded";
+            req.ContentLength = bs.Length;
+            using (Stream reqStream = req.GetRequestStream())
             {
-                formData[kv.Key] = kv.Value.ToString();
+                reqStream.Write(bs, 0, bs.Length);
+                reqStream.Close();
             }
-            HttpResponseMessage response = client.PostAsync(url, 
-                new FormUrlEncodedContent(formData.AsEnumerable())).Result;
-            response.EnsureSuccessStatusCode();
-            string content = response.Content.ReadAsStringAsync().Result;
-            return (JsonObject)JsonObject.Parse(content);
+            using (var response = req.GetResponse())
+            {
+                using (StreamReader sr = new StreamReader(response.GetResponseStream(), encoding))
+                {
+                    string strRecv = sr.ReadToEnd();
+                    return (JsonObject)JsonObject.Parse(strRecv);
+                }
+            }
+            //HttpClient client = new HttpClient();
+            //Dictionary<string, string> formData = new Dictionary<string, string>();
+            //foreach(KeyValuePair<string, object> kv in data)
+            //{
+            //   formData[kv.Key] = kv.Value.ToString();
+            //}
+            //HttpResponseMessage response = client.PostAsync(url, 
+            //    new FormUrlEncodedContent(formData.AsEnumerable())).Result;
+            //response.EnsureSuccessStatusCode();
+            //string content = response.Content.ReadAsStringAsync().Result;
+            //return (JsonObject)JsonObject.Parse(content);
         }
 
         private Dictionary<string, object> NewData()
@@ -259,7 +262,9 @@ namespace Webim
             data.Add("version", "v5");
             data.Add("domain", Domain);
             data.Add("apikey", apikey);
-            data.Add("ticket", Ticket);
+            if(!Ticket.Equals("")) {
+                data.Add("ticket", Ticket);
+            }
             return data;
         }
 

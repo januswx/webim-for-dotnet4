@@ -25,8 +25,9 @@ namespace Webim
             Id = id;
             Uri = uri;
             Nick = nick;
-            Show = "available";
-            Status = "Online";
+            Presence = "offline";
+            Show = "unavailable";
+            Status = "";
             StatusTime = "";
             Url = "";
             PicUrl = "";
@@ -38,6 +39,7 @@ namespace Webim
             data["id"] = Id;
             data["uri"] = Uri;
             data["nick"] = Nick;
+            data["presence"] = Presence;
             data["show"] = Show;
             data["status"] = Status;
             data["status_time"] = StatusTime;
@@ -51,6 +53,8 @@ namespace Webim
         public string Uri { get; set; }
 
         public string Nick { get; set; }
+
+        public string Presence { get; set; }
 
         public string Show { get; set; }
 
