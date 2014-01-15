@@ -90,10 +90,9 @@ namespace Webim.Controllers
                 conn.Add("server", (string)json["jsonpd"]);
                 conn.Add("websocket", (string)json["websocket"]);
 
-
-                JsonObject presenceObj = json["buddies"];
-
                 //Update Buddies 
+                JsonObject presenceObj = (JsonObject)json["buddies"];
+
                 foreach (WebimEndpoint b in buddies)
                 {
                     if(presenceObj.ContainsKey(b.Id)) {
@@ -103,7 +102,7 @@ namespace Webim.Controllers
                 }
                 
                 //Groups with count
-                JsonObject grpCountObj = json["groups"];
+                JsonObject grpCountObj = (JsonObject)json["groups"];
                 foreach (WebimGroup g in groups)
                 {
                     if(grpCountObj.ContainsKey[g.Id]) {
@@ -259,17 +258,8 @@ namespace Webim.Controllers
         {
             WebimClient c = webimService.CurrentClient(Request["ticket"]);
             string gid = Request["id"];
-            JsonObject obj = c.Members(gid);
-            List<Dictionary<string,string>> list = new List<Dictionary<string,string>>();
-            foreach (JsonObject m in (JsonArray)obj[gid])
-            { 
-                Dictionary<string,string> data = new Dictionary<string,string>();
-                data["id"] = (string)m["id"];
-                data["nick"] = (string)m["nick"];
-                list.Add(data);
-            }
-            return Json(list.ToArray(), JsonRequestBehavior.AllowGet);
-
+            JsonArray members = c.Members(gid);
+            return Content(members.ToString(), "text/json");
         }
 
         //POST: /Webim/Join

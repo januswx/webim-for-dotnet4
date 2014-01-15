@@ -145,7 +145,7 @@ namespace Webim
         {
             Dictionary<string, object> data = NewData();
             data.Add("ids", this.ListJoin(",", ids));
-            return HttpGet("/presences", data);
+            return (JsonObject)HttpGet("/presences", data);
         }
 
         /**
@@ -154,12 +154,12 @@ namespace Webim
         * @return member list
         * @throws Exception
         */
-        public JsonObject Members(string grpid)
+        public JsonArray Members(string grpid)
         {
 
             Dictionary<string, object> data = NewData();
             data.Add("group", grpid);
-            return HttpGet("/group/members", data);
+            return (JsonArray)HttpGet("/group/members", data);
         }
 
         /**
@@ -173,8 +173,7 @@ namespace Webim
             Dictionary<string, object> data = NewData();
             data.Add("nick", ep.Nick);
             data.Add("group", grpid);
-            JsonObject respObj = HttpPost("/group/join", data);
-            return new JsonObject();
+            return HttpPost("/group/join", data);
         }
 
         /**
@@ -191,7 +190,7 @@ namespace Webim
             return HttpPost("/group/leave", data);
         }
 
-        private JsonObject HttpGet(string path, Dictionary<string, object> parameters)
+        private JsonValue HttpGet(string path, Dictionary<string, object> parameters)
         {
             String url = this.ApiUrl(path);
             HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(url + "?" + UrlEncode(parameters));
@@ -200,7 +199,7 @@ namespace Webim
                 using (StreamReader sr = new StreamReader(response.GetResponseStream()))
                 {
                     string strRecv = sr.ReadToEnd();
-                    return (JsonObject)JsonObject.Parse(strRecv);
+                    return JsonObject.Parse(strRecv);
                 }
             }
             //HttpClient client = new HttpClient();
