@@ -45,6 +45,8 @@ namespace Webim.Controllers
 	            enable_menu: 'false',
 	            theme: 'base',
 	            local: 'zh-CN',
+				emot: 'default',
+				opacity: 80,
                 aspx: false,
                 show_unavailable: false,
 	            min: """" //window.location.href.indexOf(""webim_debug"") != -1 ? """" : "".min""
@@ -78,7 +80,7 @@ namespace Webim.Controllers
 
                 if(json.ContainsKey("status")) {
                     return Json(
-                        new { success = false, error_msg =  json["message"] },
+                        new { success = false, error_msg = json["message"] },
                         JsonRequestBehavior.AllowGet
                     );
                 }
@@ -91,25 +93,27 @@ namespace Webim.Controllers
                 conn.Add("websocket", (string)json["websocket"]);
 
                 //Update Buddies 
-                JsonObject presenceObj = (JsonObject)json["buddies"];
+                JsonObject presenceObj = json["buddies"].ToJsonObject();
+                buddies = buddies.Select(b =>
+                  {
+                      if (presenceObj.ContainsKey(b.Id))
+                      {
+                          b.Presence = "online";
+                          b.Show = (string)presenceObj[b.Id];
+                      }
+                      return b;
+                  });
 
-                foreach (WebimEndpoint b in buddies)
-                {
-                    if(presenceObj.ContainsKey(b.Id)) {
-                        b.Presence = "online";
-                        b.Show = presenceObj[b.Id];
-                    }
-                }
-                
                 //Groups with count
-                JsonObject grpCountObj = (JsonObject)json["groups"];
-                foreach (WebimGroup g in groups)
+                JsonObject grpCountObj = json["groups"].ToJsonObject();
+                groups = groups.Select(g =>
                 {
-                    if(grpCountObj.ContainsKey[g.Id]) {
+                    if (grpCountObj.ContainsKey(g.Id))
+                    {
                         g.Count = (int)grpCountObj[g.Id];
                     }
-                }
-
+                    return g;
+                });
                 //{"success":true,
                 // "connection":{
                 // "ticket":"fcc493f7a7b17cfadbf4|admin",
@@ -312,7 +316,7 @@ namespace Webim.Controllers
 
         private double Timestamp()
         {
-            return (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds*1000;
+            return (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
         }
     }
 }

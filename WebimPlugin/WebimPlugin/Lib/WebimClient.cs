@@ -12,11 +12,11 @@ namespace Webim
     public class WebimClient
     {
         private int port;
+        private WebimEndpoint ep;
         private string domain;
         private string apikey;
         private string host;
         private string ticket = "";
-        private WebimEndpoint ep;
 
         public WebimClient(WebimEndpoint ep, string domain, string apikey, string host, int port)
         {
@@ -156,7 +156,6 @@ namespace Webim
         */
         public JsonArray Members(string grpid)
         {
-
             Dictionary<string, object> data = NewData();
             data.Add("group", grpid);
             return (JsonArray)HttpGet("/group/members", data);
@@ -215,7 +214,7 @@ namespace Webim
             foreach (KeyValuePair<string, object> p in parameters)
             {
                 //TODO: FIXME Later
-                l.Add(p.Key + "=" + Uri.EscapeUriString(p.Value.ToString()));
+                l.Add(p.Key + "=" + Uri.EscapeUriString(p.Value != null ? p.Value.ToString() : string.Empty));
             }
             return string.Join("&", l.ToArray());
         }
