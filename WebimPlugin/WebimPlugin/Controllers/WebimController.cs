@@ -23,7 +23,7 @@ namespace Webim.Controllers
             return View();
         }
 
-        // GET: /Webim/Run
+        // GET: /Webim/Boot
         [HttpGet]
         public ActionResult Boot()
         {
@@ -35,6 +35,7 @@ namespace Webim.Controllers
 	            path: '{0}',
 	            uiPath: '{1}',
 	            is_login: true,
+                is_visitor: false,
 	            user: '',
 	            setting: '',
 	            menu: '',
