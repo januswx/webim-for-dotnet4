@@ -47,7 +47,30 @@ namespace Webim
          * @return Buddy list
          *
          */
-        public List<WebimEndpoint> Buddies(string uid)
+        public IEnumerable<WebimEndpoint> Buddies(string uid)
+        {
+            //TODO: STUB CODE
+            List<WebimEndpoint> buddies = new List<WebimEndpoint>();
+            WebimEndpoint e = new WebimEndpoint("1", "user1");
+            e.PicUrl = "/static/images/male.png";
+            buddies.Add(e);
+            e = new WebimEndpoint("2", "user2");
+            e.PicUrl = "/static/images/female.png";
+            buddies.Add(e);
+            return buddies;
+
+        }
+
+        /**
+        * API: buddies by ids
+        *
+        * @param buddy id array
+        *
+        * @return Buddy list
+        *
+        */
+
+        public IEnumerable<WebimEndpoint> BuddiesByIds(string uid, string[] ids)
         {
 
             List<WebimEndpoint> buddies = new List<WebimEndpoint>();
@@ -58,38 +81,14 @@ namespace Webim
             e.PicUrl = "/static/images/female.png";
             buddies.Add(e);
             return buddies;
-
-
-
         }
 
         /**
- * API: buddies by ids
- *
- * @param buddy id array
- *
- * @return Buddy list
- *
- */
-
-        List<WebimEndpoint> BuddiesByIds(string uid, string[] ids)
-        {
-            List<WebimEndpoint> buddies = new List<WebimEndpoint>();
-            WebimEndpoint e = new WebimEndpoint("1", "user1");
-            e.PicUrl = "/static/images/male.png";
-            buddies.Add(e);
-            e = new WebimEndpoint("2", "user2");
-            e.PicUrl = "/static/images/female.png";
-            buddies.Add(e);
-            return buddies;
-        }
-
-        /**
- * 根据roomId读取群组
- * 
- * @param roomId
- * @return 群组
- */
+        * 根据roomId读取群组
+        * 
+        * @param roomId
+        * @return WebimRoom
+        */
         public WebimRoom findRoom(string roomId)
         {
             // TODO: 示例代码，需要替换
@@ -120,7 +119,7 @@ namespace Webim
          *  all_count:  count of all members
          *  blocked:    true | false
          */
-        public List<WebimRoom> Rooms(String uid)
+        public IEnumerable<WebimRoom> Rooms(String uid)
         {
             // TODO: 示例代码，需要替换
             List<WebimRoom> rooms = new List<WebimRoom>();
@@ -140,7 +139,7 @@ namespace Webim
          * Room
          *
          */
-        public List<WebimRoom> RoomsByIds(String uid, String[] ids)
+        public IEnumerable<WebimRoom> RoomsByIds(String uid, String[] ids)
         {
             // TODO: 示例代码，需要替换
             List<WebimRoom> rooms = new List<WebimRoom>();
@@ -156,12 +155,12 @@ namespace Webim
          * @param roomId
          * @return member list
          */
-        public List<WebimMember> Members(string roomId)
+        public IEnumerable<WebimMember> Members(string roomId)
         {
-            List<WebimMember> members = new List<WebimMember>();
-            members.Add(new WebimMember("1", "user1"));
-            members.Add(new WebimMember("2", "user2"));
-            return members;
+            return new List<WebimMember> { 
+                new WebimMember("1", "user1"), 
+                new WebimMember("2", "user2") 
+            };
         }
 
         /**
@@ -174,11 +173,9 @@ namespace Webim
          *  text: text
          *  link: link
          */
-        public List<WebimNotification> Notifications(string uid)
+        public IEnumerable<WebimNotification> Notifications(string uid)
         {
-            List<WebimNotification> notifications = new List<WebimNotification>();
-            notifications.Add(new WebimNotification("通知", "#"));
-            return notifications;
+            return new List<WebimNotification>() { new WebimNotification("通知", "#") };
         }
 
 
@@ -193,7 +190,7 @@ namespace Webim
          * text
          * link
          */
-        public List<WebimMenu> Menu(string uid)
+        public IEnumerable<WebimMenu> Menu(string uid)
         {
             return new List<WebimMenu>();
         }

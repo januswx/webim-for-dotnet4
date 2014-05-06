@@ -42,7 +42,7 @@ namespace Webim
          * 			  记录条数
          * @return 聊天记录
          */
-        public List<WebimHistory> Histories(string uid, string with, string type, int limit)
+        public IEnumerable<WebimHistory> Histories(string uid, string with, string type = "chat", int limit = 50)
         {
             return new List<WebimHistory>();
         }
@@ -57,7 +57,7 @@ namespace Webim
          *            用户uid
          * @return 返回离线消息
          */
-        public List<WebimHistory> OfflineHistories(string uid, int limit)
+        public IEnumerable<WebimHistory> OfflineHistories(string uid, int limit = 50)
         {
             //TODO:
             return new List<WebimHistory>();
@@ -111,6 +111,19 @@ namespace Webim
             //TODO:
         }
 
+
+        /*
+         * CREATE TABLE webim_settings(
+         *   `Id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+         *   `Uid` bigint unsigned NOT NULL,
+         *   `Data` text,
+         *   `CreatedAt` date DEFAULT NULL,
+         *   `UpdatedAt` date DEFAULT NULL,
+         *   PRIMARY KEY (`id`)
+         * );
+         */
+
+
         /**
          * 读取用户配置数据。<br>
          * 
@@ -125,7 +138,7 @@ namespace Webim
          */
         public string GetSetting(string uid)
         {
-            return "";
+            return "{}";
         }
 
         /**
@@ -165,7 +178,7 @@ namespace Webim
          * 
          * @return 群组列表
          */
-        public List<WebimRoom> Rooms(string uid)
+        public IEnumerable<WebimRoom> Rooms(string uid)
         {
             //TODO:
             return new List<WebimRoom>();
@@ -179,7 +192,7 @@ namespace Webim
          * 
          * @return 群组列表
          */
-        public List<WebimRoom> RoomsByIds(string uid, string[] ids)
+        public IEnumerable<WebimRoom> RoomsByIds(string uid, string[] ids)
         {
             //TODO:
             return new List<WebimRoom>();
@@ -191,7 +204,7 @@ namespace Webim
          * @param room 临时讨论组ID
          * @return 成员列表
          */
-        public List<WebimMember> Members(string room)
+        public IEnumerable<WebimMember> Members(string room)
         {
             return new List<WebimMember>();
         }
@@ -215,7 +228,7 @@ namespace Webim
          * @param roomId 讨论组name
          * @param members 成员列表
          */
-        public void InviteRoom(string roomId, List<WebimEndpoint> members)
+        public void InviteRoom(string roomId, IEnumerable<WebimEndpoint> members)
         {
             //TODO: invite members to room
         }
@@ -306,7 +319,7 @@ namespace Webim
          * @param vids
          * @return
          */
-        List<WebimEndpoint> Visitors(string[] vids)
+        IEnumerable<WebimEndpoint> Visitors(string[] vids)
         {
             return new List<WebimEndpoint>();
         }

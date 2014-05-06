@@ -13,12 +13,6 @@ namespace Webim.Controllers
     public class WebimController : Controller
     {
 
-        //TODO: There should be userService, groupService and FollowService
-
-        private WebimService webimService = new WebimService();
-
-        private WebimConfig config = null;
-
         private WebimModel model = null;
 
         private WebimPlugin plugin = null;
@@ -27,14 +21,11 @@ namespace Webim.Controllers
 
         private WebimEndpoint endpoint = null;
 
-
         public WebimController()
         {
-            this.config = new WebimConfig();
             this.model = new WebimModel();
             this.plugin = new WebimPlugin();
             this.endpoint = this.plugin.Endpoint();
-
         }
 
 
@@ -50,15 +41,15 @@ namespace Webim.Controllers
          *            通信令牌
          * @return 当前用户的Webim客户端
          */
-        private WebimClient CurrentClient(string ticket)
+        private WebimClient CurrentClient(string ticket = "")
         {
             if (this.client == null)
             {
                 this.client = new WebimClient(this.endpoint,
-                        (String)this.config.get("domain"),
-                        (String)this.config.get("apikey"),
-                        (String)this.config.get("host"),
-                        (int)this.config.get("port"));
+                        WebimConfig.DOMAIN,
+                        WebimConfig.APIKEY,
+                        WebimConfig.HOST,
+                        WebimConfig.PORT);
                 this.client.Ticket = ticket;
             }
             return this.client;
@@ -74,8 +65,8 @@ namespace Webim.Controllers
         [HttpGet]
         public ActionResult Boot()
         {
-			long uid = webimService.CurrentUid();
-            string setting = webimService.GetSetting(uid);
+            string uid = CurrentUid();
+            string setting = model.GetSetting(uid);
             string body = string.Format(@"var _IMC = {{
 	            product: 'dotnet',
 	            version: '1.0',
@@ -115,17 +106,21 @@ namespace Webim.Controllers
         public ActionResult Online()
         {
             //当前用户登录
-            long uid = webimService.CurrentUid();
-            IEnumerable<WebimEndpoint> buddies = webimService.GetBuddies(uid);
-            IEnumerable<WebimRoom> rooms = webimService.GetGroups(uid);
+            string uid = CurrentUid();
+            if (Request["show"] != null)
+            {
+                this.endpoint.Show = Request["show"];
+            }
+            IEnumerable<WebimEndpoint> buddies = plugin.Buddies(uid);
+            IEnumerable<WebimRoom> rooms = plugin.Rooms(uid);
             //Forward Online to IM Server
-            WebimClient client = webimService.CurrentClient();
+            WebimClient client = CurrentClient();
             var buddyIds = from b in buddies select b.Id;
-            var groupIds = from g in rooms select g.Id;
+            var roomIds = from g in rooms select g.Id;
             try
             {
-                Dictionary<string,object> data = client.Online(buddyIds, groupIds);
-               
+                Dictionary<string, object> data = client.Online(buddyIds, roomIds);
+
                 //Update Buddies 
                 JsonObject presenceObj = (JsonObject)data["presences"];
                 buddies = buddies.Select(b =>
@@ -144,14 +139,14 @@ namespace Webim.Controllers
                 data["buddies"] = buddyArray;
                 data["rooms"] = roomArray;
                 data["server_time"] = Timestamp();
-                data["user"] = client.Endpoint.Data(); 
+                data["user"] = this.endpoint;
                 return Json(data, JsonRequestBehavior.AllowGet);
 
             }
             catch (Exception e)
             {
                 return Json(
-                    new { success = false, error_msg =  e.ToString()},
+                    new { success = false, error_msg = e.ToString() },
                     JsonRequestBehavior.AllowGet
                 );
             }
@@ -162,7 +157,7 @@ namespace Webim.Controllers
         [HttpPost]
         public ActionResult Offline()
         {
-            WebimClient c = webimService.CurrentClient(Request["ticket"]);
+            WebimClient c = CurrentClient(Request["ticket"]);
             c.Offline();
             return Json("ok");
         }
@@ -171,8 +166,8 @@ namespace Webim.Controllers
         [HttpPost]
         public ActionResult Message()
         {
-            long uid = webimService.CurrentUid();
-            WebimClient c = webimService.CurrentClient(Request["ticket"]);
+            string uid = CurrentUid();
+            WebimClient c = CurrentClient(Request["ticket"]);
             string type = Request["type"];
             string offline = Request["offline"];
             string to = Request["to"];
@@ -180,8 +175,11 @@ namespace Webim.Controllers
             string style = Request["style"];
             if (style == null) { style = ""; }
             WebimMessage msg = new WebimMessage(type, to, c.Endpoint.Nick, body, style, Timestamp());
+            msg.Offline = offline.Equals("true") ? true : false;
             c.Publish(msg);
-            webimService.InsertHistory(uid, offline, msg);
+            if (body != null && !body.StartsWith("webim-event:")) {
+                model.InsertHistory(uid, msg);
+            }
             return Json("ok");
         }
 
@@ -189,7 +187,7 @@ namespace Webim.Controllers
         [HttpPost]
         public ActionResult Presence()
         {
-            WebimClient c = webimService.CurrentClient(Request["ticket"]);
+            WebimClient c = CurrentClient(Request["ticket"]);
             string show = Request["show"];
             string status = Request["status"];
             c.Publish(new WebimPresence(show, status));
@@ -200,7 +198,7 @@ namespace Webim.Controllers
         [HttpPost]
         public ActionResult Status()
         {
-            WebimClient c = webimService.CurrentClient(Request["ticket"]);
+            WebimClient c = CurrentClient(Request["ticket"]);
             string to = Request["to"];
             string show = Request["show"];
             string status = Request["status"];
@@ -214,7 +212,7 @@ namespace Webim.Controllers
         [HttpPost]
         public ActionResult Refresh()
         {
-            WebimClient c = webimService.CurrentClient(Request["ticket"]);
+            WebimClient c = CurrentClient(Request["ticket"]);
             c.Offline();
             return Json("ok");
         }
@@ -222,10 +220,9 @@ namespace Webim.Controllers
         //POST: /Webim/Setting
         [HttpPost]
         public ActionResult Setting()
-        {
-            long uid = webimService.CurrentUid();
+        {   
             string data = Request["data"];
-            webimService.updateSetting(uid, data);
+            model.SaveSetting(CurrentUid(), data);
             return Json("ok");
         }
 
@@ -233,10 +230,10 @@ namespace Webim.Controllers
         [HttpGet]
         public ActionResult History()
         {
-            long uid = webimService.CurrentUid();
+            string uid = CurrentUid();
             string id = Request["id"];
             string type = Request["type"];
-            IEnumerable<WebimHistory> histories = webimService.GetHistories(uid, id, type);
+            IEnumerable<WebimHistory> histories = model.Histories(uid, id, type);
             var list = from h in histories select h.Data();
             return Json(list.ToArray(), JsonRequestBehavior.AllowGet);
         }
@@ -244,21 +241,20 @@ namespace Webim.Controllers
         //POST: /Webim/ClearHistory
         public ActionResult ClearHistory()
         {
-            long uid = webimService.CurrentUid();
+            string uid = CurrentUid();
             string id = Request["id"];
-            webimService.ClearHistories(uid, id);
+            model.ClearHistories(uid, id);
             return Json("ok");
-
         }
 
         //GET: /Webim/DownloadHistory
         [HttpGet]
         public ActionResult DownloadHistory()
         {
-            long uid = webimService.CurrentUid();
+            string uid = CurrentUid();
             string id = Request["id"];
             string type = Request["type"];
-            IEnumerable<WebimHistory> histories = webimService.GetHistories(uid, id, type);
+            IEnumerable<WebimHistory> histories = model.Histories(uid, id, type);
             return View(histories);
         }
 
@@ -267,27 +263,64 @@ namespace Webim.Controllers
         [HttpGet]
         public ActionResult Members()
         {
-            WebimClient c = webimService.CurrentClient(Request["ticket"]);
-            string gid = Request["id"];
-            JsonObject members = c.Members(gid);
-            return Content(members.ToString(), "text/json");
+            WebimClient c = CurrentClient(Request["ticket"]);
+            string roomId = Request["id"];
+            WebimRoom room = this.plugin.findRoom(roomId);
+            IEnumerable<WebimMember> members = null;
+            if (room != null)
+            {
+                members = plugin.Members(roomId);
+            }
+            else
+            {
+                room = model.FindRoom(roomId);
+                if (room != null)
+                {
+                    members = model.Members(roomId);
+                }
+            }
+            if (room == null)
+            {
+                return null;
+            }
+            JsonObject presences = c.Members(roomId);
+            foreach (WebimMember member in members) {
+                if (presences.ContainsKey(member.Id))
+                {
+                    member.Presence = "online";
+                    member.Show = (string)presences[member.Id];
+                }
+                else {
+                    member.Presence = "offline";
+                    member.Show = "unavailable";
+                }
+            }
+            var data = (from m in members select m.Data()).ToArray();
+            return Json(data.ToArray(), JsonRequestBehavior.AllowGet);
         }
 
         //POST: /Webim/Join
         [HttpPost]
         public ActionResult Join()
         {
-            WebimClient c = webimService.CurrentClient(Request["ticket"]);
-            string gid = Request["id"];
-            JsonObject o = c.Join(gid);
-            return Content(o.ToString(), "text/json");
+            WebimClient c = CurrentClient(Request["ticket"]);
+            string id = Request["id"];
+            WebimRoom room = plugin.findRoom(id);
+            if(room == null) {
+                room = model.FindRoom(id);
+            }
+            if(room != null) { 
+                c.Join(id);
+                return Json(room.Data(), JsonRequestBehavior.AllowGet);
+            }
+            return null;
         }
 
         //POST: /Webim/Leave
         [HttpPost]
         public ActionResult Leave()
         {
-            WebimClient c = webimService.CurrentClient(Request["ticket"]);
+            WebimClient c = CurrentClient(Request["ticket"]);
             c.Leave(Request["id"]);
             return Json("ok");
         }
@@ -297,10 +330,8 @@ namespace Webim.Controllers
         [HttpGet]
         public ActionResult Buddies()
         {
-            IEnumerable<long> ids = (from id in
-                                         Request["ids"].Split(new char[1] { ',' })
-                                     select long.Parse(id));
-            IEnumerable<WebimEndpoint> buddies = webimService.GetBuddiesByIds(ids);
+            string[] ids = Request["ids"].Split(new char[1] { ',' });                 
+            IEnumerable<WebimEndpoint> buddies = plugin.BuddiesByIds(CurrentUid(), ids);
             var list = from buddy in buddies select buddy.Data();
             return Json(list.ToArray(), JsonRequestBehavior.AllowGet);
         }
@@ -309,16 +340,14 @@ namespace Webim.Controllers
         [HttpGet]
         public ActionResult Notifications()
         {
-            long uid = webimService.CurrentUid();
-            return Json(webimService.GetNotifications(uid), JsonRequestBehavior.AllowGet);
+            return Json(plugin.Notifications(CurrentUid()), JsonRequestBehavior.AllowGet);
         }
 
-        //GET: /Webim/Menus
+        //GET: /Webim/Menu
         [HttpGet]
-        public ActionResult Menus()
+        public ActionResult Menu()
         {
-            long uid = webimService.CurrentUid();
-            return Json(webimService.GetMenuList(uid), JsonRequestBehavior.AllowGet);
+            return Json(plugin.Menu(CurrentUid()), JsonRequestBehavior.AllowGet);
         }
 
         private double Timestamp()
