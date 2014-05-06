@@ -26,10 +26,10 @@
         //upload files
 		upload: path + "Upload" + aspx
 	});
-	webim.ui.emot.init({ "dir": _IMC.uiPath + "static/images/emot/default" });
+	webim.ui.emot.init({ "dir": "static/images/emot/default" });
 	var soundUrls = {
-		lib: _IMC.uiPath + "static/assets/sound.swf",
-		msg: _IMC.uiPath + "static/assets/sound/msg.mp3"
+		lib: "static/assets/sound.swf",
+		msg: "static/assets/sound/msg.mp3"
 	};
 	var ui = new webim.ui(document.body, {
 		imOptions: {
@@ -75,3 +75,4 @@
 	ui.render();
 	_IMC['is_login'] && im.autoOnline() && im.online();
 })(webim);
+

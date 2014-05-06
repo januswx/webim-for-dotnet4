@@ -68,16 +68,6 @@ namespace Webim
             // TODO Auto-generated method stub
         }
 
-        /**
-         * 插入一条聊天记录，参考库表与WebimHistory字段。
-         * 
-         * @param history
-         *            聊天记录
-         */
-        public void InsertHistory(WebimHistory history)
-        {
-            //TODO:
-        }
 
         /**
          * 清除与with用户聊天记录，SQL脚本:<br>

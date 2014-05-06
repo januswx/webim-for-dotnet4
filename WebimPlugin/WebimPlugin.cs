@@ -11,15 +11,13 @@ namespace Webim
         * API: current user
         *
         * 返回当前的Webim端点(用户)
- *
- * @return current user
- */
-
+        */
         public WebimEndpoint Endpoint()
         {
             // TODO: 应替换该代码，返回集成系统的当前用户。
             WebimEndpoint ep = new WebimEndpoint("1", "user1");
             ep.PicUrl = "/static/images/male.png";
+            ep.Presence = "online";
             ep.Show = "available";
             ep.Url = "#";// 用户空间
             ep.Status = ""; // 用户状态

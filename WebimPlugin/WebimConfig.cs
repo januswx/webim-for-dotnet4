@@ -100,7 +100,7 @@ namespace Webim
         /**
          * 显示不在线好友
          */
-        public static bool SHOW_UNAVAILABLE = true;
+        public static bool SHOW_UNAVAILABLE = false;
 
         /**
          * 支持访客

@@ -122,16 +122,23 @@ namespace Webim.Controllers
                 Dictionary<string, object> data = client.Online(buddyIds, roomIds);
 
                 //Update Buddies 
-                JsonObject presenceObj = (JsonObject)data["presences"];
-                buddies = buddies.Select(b =>
-                  {
-                      if (presenceObj.ContainsKey(b.Id))
-                      {
-                          b.Presence = "online";
-                          b.Show = (string)presenceObj[b.Id];
-                      }
-                      return b;
-                  });
+                JsonObject presences = (JsonObject)data["presences"];
+                foreach (WebimEndpoint buddy in buddies) {
+                    if (presences.ContainsKey(buddy.Id))
+                    {
+                        buddy.Presence = "online";
+                        buddy.Show = (string)presences[buddy.Id];
+                    }
+                    else {
+                        buddy.Presence = "offline";
+                        buddy.Show = "unavailable";
+                    }
+                 
+                }
+                if (!WebimConfig.SHOW_UNAVAILABLE)
+                {
+                    buddies = buddies.Where(buddy => buddy.Presence.Equals("online") && !buddy.Show.Equals("invisible"));
+                }
                 var buddyArray = (from b in buddies select b.Data()).ToArray();
                 var roomArray = (from g in rooms select g.Data()).ToArray();
                 data.Remove("presences");
@@ -139,7 +146,7 @@ namespace Webim.Controllers
                 data["buddies"] = buddyArray;
                 data["rooms"] = roomArray;
                 data["server_time"] = Timestamp();
-                data["user"] = this.endpoint;
+                data["user"] = this.endpoint.Data();
                 return Json(data, JsonRequestBehavior.AllowGet);
 
             }
@@ -295,7 +302,7 @@ namespace Webim.Controllers
                     member.Show = "unavailable";
                 }
             }
-            var data = (from m in members select m.Data()).ToArray();
+            var data = from m in members select m.Data();
             return Json(data.ToArray(), JsonRequestBehavior.AllowGet);
         }
 
@@ -340,14 +347,16 @@ namespace Webim.Controllers
         [HttpGet]
         public ActionResult Notifications()
         {
-            return Json(plugin.Notifications(CurrentUid()), JsonRequestBehavior.AllowGet);
+            var list = from n in plugin.Notifications(CurrentUid()) select n.Data();
+            return Json(list.ToArray(), JsonRequestBehavior.AllowGet);
         }
 
         //GET: /Webim/Menu
         [HttpGet]
         public ActionResult Menu()
         {
-            return Json(plugin.Menu(CurrentUid()), JsonRequestBehavior.AllowGet);
+            var list = from m in plugin.Menu(CurrentUid()) select m.Data();
+            return Json(list.ToArray(), JsonRequestBehavior.AllowGet);
         }
 
         private double Timestamp()
