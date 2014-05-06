@@ -54,7 +54,7 @@ namespace Webim.Controllers
             }};
             
             _IMC.script = window.webim ? '' : ('<link href=""' + _IMC.uiPath + 'static/webim' + _IMC.min + '.css?' + _IMC.version + '"" media=""all"" type=""text/css"" rel=""stylesheet""/><link href=""' + _IMC.uiPath + 'static/themes/' + _IMC.theme + '/jquery.ui.theme.css?' + _IMC.version + '"" media=""all"" type=""text/css"" rel=""stylesheet""/><script src=""' + _IMC.uiPath + 'static/webim' + _IMC.min + '.js?' + _IMC.version + '"" type=""text/javascript""></script><script src=""' + _IMC.uiPath + 'static/i18n/webim-' + _IMC.local + '.js?' + _IMC.version + '"" type=""text/javascript""></script>');
-            _IMC.script += '<script src=""' + _IMC.uiPath + 'webim.' + _IMC.production_name + '.js?' + _IMC.version + '"" type=""text/javascript""></script>';
+            _IMC.script += '<script src=""' + _IMC.uiPath + 'static/webim.' + _IMC.production_name + '.js?' + _IMC.version + '"" type=""text/javascript""></script>';
             document.write( _IMC.script );
 
             ", ("/Webim/"), ("/UI/"));
