@@ -29,7 +29,6 @@ namespace Webim
         { 
             WebimEndpoint ep = new WebimEndpoint(
                 "1",
-                "uid:1",
                 "user1");
             ep.PicUrl = ""; //用户头像
             ep.Show = "available";
@@ -56,13 +55,13 @@ namespace Webim
             return webimDao.GetBuddiesByUid(uid, 1000);
         }
 
-        public IEnumerable<WebimGroup> GetGroups(long uid)
+        public IEnumerable<WebimRoom> GetGroups(long uid)
         {
             return webimDao.GetGroups(uid, 100);
         }
 
         //Groups
-        public WebimGroup GetGroup(long gid)
+        public WebimRoom GetGroup(long gid)
         {
             return webimDao.GetGroup(gid);
         }

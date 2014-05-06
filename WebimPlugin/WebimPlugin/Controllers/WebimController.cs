@@ -17,6 +17,53 @@ namespace Webim.Controllers
 
         private WebimService webimService = new WebimService();
 
+        private WebimConfig config = null;
+
+        private WebimModel model = null;
+
+        private WebimPlugin plugin = null;
+
+        private WebimClient client = null;
+
+        private WebimEndpoint endpoint = null;
+
+
+        public WebimController()
+        {
+            this.config = new WebimConfig();
+            this.model = new WebimModel();
+            this.plugin = new WebimPlugin();
+            this.endpoint = this.plugin.Endpoint();
+
+        }
+
+
+        private string CurrentUid()
+        {
+            return this.endpoint.Id;
+        }
+
+        /**
+         * 返回当前的Webim客户端。
+         * 
+         * @param ticket
+         *            通信令牌
+         * @return 当前用户的Webim客户端
+         */
+        private WebimClient CurrentClient(string ticket)
+        {
+            if (this.client == null)
+            {
+                this.client = new WebimClient(this.endpoint,
+                        (String)this.config.get("domain"),
+                        (String)this.config.get("apikey"),
+                        (String)this.config.get("host"),
+                        (int)this.config.get("port"));
+                this.client.Ticket = ticket;
+            }
+            return this.client;
+        }
+
         // GET: /Webim/Index
         public ActionResult Index()
         {
@@ -30,15 +77,15 @@ namespace Webim.Controllers
 			long uid = webimService.CurrentUid();
             string setting = webimService.GetSetting(uid);
             string body = string.Format(@"var _IMC = {{
-	            production_name: 'dotnet',
+	            product: 'dotnet',
 	            version: '1.0',
 	            path: '{0}',
-	            uiPath: '{1}',
 	            is_login: true,
                 is_visitor: false,
 	            user: '',
 	            setting: '',
 	            menu: '',
+                discussion: false,
 				enable_room: true,
 				enable_noti: true,
 	            enable_chatlink: false,
@@ -50,14 +97,15 @@ namespace Webim.Controllers
 				opacity: 80,
                 aspx: false,
                 show_unavailable: false,
+                upload: false,
 	            min: """" //window.location.href.indexOf(""webim_debug"") != -1 ? """" : "".min""
             }};
             
-            _IMC.script = window.webim ? '' : ('<link href=""' + _IMC.uiPath + 'static/webim' + _IMC.min + '.css?' + _IMC.version + '"" media=""all"" type=""text/css"" rel=""stylesheet""/><link href=""' + _IMC.uiPath + 'static/themes/' + _IMC.theme + '/jquery.ui.theme.css?' + _IMC.version + '"" media=""all"" type=""text/css"" rel=""stylesheet""/><script src=""' + _IMC.uiPath + 'static/webim' + _IMC.min + '.js?' + _IMC.version + '"" type=""text/javascript""></script><script src=""' + _IMC.uiPath + 'static/i18n/webim-' + _IMC.local + '.js?' + _IMC.version + '"" type=""text/javascript""></script>');
-            _IMC.script += '<script src=""' + _IMC.uiPath + 'static/webim.' + _IMC.production_name + '.js?' + _IMC.version + '"" type=""text/javascript""></script>';
+            _IMC.script = window.webim ? '' : ('<link href=""static/webim' + _IMC.min + '.css?' + _IMC.version + '"" media=""all"" type=""text/css"" rel=""stylesheet""/><link href=""static/themes/' + _IMC.theme + '/jquery.ui.theme.css?' + _IMC.version + '"" media=""all"" type=""text/css"" rel=""stylesheet""/><script src=""static/webim' + _IMC.min + '.js?' + _IMC.version + '"" type=""text/javascript""></script><script src=""static/i18n/webim-' + _IMC.local + '.js?' + _IMC.version + '"" type=""text/javascript""></script>');
+            _IMC.script += '<script src=""static/webim.' + _IMC.product + '.js?' + _IMC.version + '"" type=""text/javascript""></script>';
             document.write( _IMC.script );
 
-            ", ("/Webim/"), ("/UI/"));
+            ", ("/Webim/"));
 
             return Content(body, "text/javascript");
         }
@@ -69,32 +117,17 @@ namespace Webim.Controllers
             //当前用户登录
             long uid = webimService.CurrentUid();
             IEnumerable<WebimEndpoint> buddies = webimService.GetBuddies(uid);
-            IEnumerable<WebimGroup> groups = webimService.GetGroups(uid);
+            IEnumerable<WebimRoom> rooms = webimService.GetGroups(uid);
             //Forward Online to IM Server
             WebimClient client = webimService.CurrentClient();
             var buddyIds = from b in buddies select b.Id;
-            var groupIds = from g in groups select g.Id;
+            var groupIds = from g in rooms select g.Id;
             try
             {
-                JsonObject json = client.Online(buddyIds, groupIds);
-                Debug.WriteLine(json.ToString());
-
-                if(json.ContainsKey("status")) {
-                    return Json(
-                        new { success = false, error_msg = json["message"] },
-                        JsonRequestBehavior.AllowGet
-                    );
-                }
-
-                Dictionary<string, string> conn = new Dictionary<string, string>();
-                conn.Add("ticket", (string)json["ticket"]);
-                conn.Add("domain", client.Domain);
-                conn.Add("jsonpd", (string)json["jsonpd"]);
-                conn.Add("server", (string)json["jsonpd"]);
-                conn.Add("websocket", (string)json["websocket"]);
-
+                Dictionary<string,object> data = client.Online(buddyIds, groupIds);
+               
                 //Update Buddies 
-                JsonObject presenceObj = json["buddies"].ToJsonObject();
+                JsonObject presenceObj = (JsonObject)data["presences"];
                 buddies = buddies.Select(b =>
                   {
                       if (presenceObj.ContainsKey(b.Id))
@@ -104,42 +137,15 @@ namespace Webim.Controllers
                       }
                       return b;
                   });
-
-                //Groups with count
-                JsonObject grpCountObj = json["groups"].ToJsonObject();
-                groups = groups.Select(g =>
-                {
-                    if (grpCountObj.ContainsKey(g.Id))
-                    {
-                        g.Count = (int)grpCountObj[g.Id];
-                    }
-                    return g;
-                });
-                //{"success":true,
-                // "connection":{
-                // "ticket":"fcc493f7a7b17cfadbf4|admin",
-                // "domain":"webim20.cn",
-                // "server":"http:\/\/webim20.cn:8000\/packets"},
-                // "buddies":[
-                //           {"uid":"5","id":"demo","nick":"demo","group":"stranger","url":"home.php?mod=space&uid=5","pic_url":"picurl","status":"","presence":"online","show":"available"}],
-                // "rooms":[],
-                // "server_time":1370751451399.4,
-                // "user":{"uid":"1","id":"admin","nick":"admin","pic_url":"pickurl","show":"available","url":"home.php?mod=space&uid=1","status":""},
-                // "new_messages":[]}
-
-
                 var buddyArray = (from b in buddies select b.Data()).ToArray();
-                var groupArray = (from g in groups select g.Data()).ToArray();
-                return Json(new
-                {
-                    success = true,
-                    connection = conn,
-                    buddies = buddyArray,
-                    groups = groupArray,
-                    rooms = groupArray,
-                    server_time = Timestamp(),
-                    user = client.Endpoint.Data()
-                }, JsonRequestBehavior.AllowGet);
+                var roomArray = (from g in rooms select g.Data()).ToArray();
+                data.Remove("presences");
+                data["success"] = true;
+                data["buddies"] = buddyArray;
+                data["rooms"] = roomArray;
+                data["server_time"] = Timestamp();
+                data["user"] = client.Endpoint.Data(); 
+                return Json(data, JsonRequestBehavior.AllowGet);
 
             }
             catch (Exception e)
@@ -263,7 +269,7 @@ namespace Webim.Controllers
         {
             WebimClient c = webimService.CurrentClient(Request["ticket"]);
             string gid = Request["id"];
-            JsonArray members = c.Members(gid);
+            JsonObject members = c.Members(gid);
             return Content(members.ToString(), "text/json");
         }
 
