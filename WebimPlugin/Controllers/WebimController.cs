@@ -269,7 +269,7 @@ namespace Webim.Controllers
         {
             WebimClient c = CurrentClient(Request["ticket"]);
             string roomId = Request["id"];
-            WebimRoom room = this.plugin.findRoom(roomId);
+            WebimRoom room = this.plugin.FindRoom(roomId);
             IEnumerable<WebimMember> members = null;
             if (room != null)
             {

@@ -16,7 +16,7 @@ namespace Webim
         {
             // TODO: 应替换该代码，返回集成系统的当前用户。
             WebimEndpoint ep = new WebimEndpoint("1", "user1");
-            ep.PicUrl = "/static/images/male.png";
+            ep.Avatar = "/static/images/male.png";
             ep.Presence = "online";
             ep.Show = "available";
             ep.Url = "#";// 用户空间
@@ -50,10 +50,10 @@ namespace Webim
             //TODO: STUB CODE
             List<WebimEndpoint> buddies = new List<WebimEndpoint>();
             WebimEndpoint e = new WebimEndpoint("1", "user1");
-            e.PicUrl = "/static/images/male.png";
+            e.Avatar = "/static/images/male.png";
             buddies.Add(e);
             e = new WebimEndpoint("2", "user2");
-            e.PicUrl = "/static/images/female.png";
+            e.Avatar = "/static/images/female.png";
             buddies.Add(e);
             return buddies;
 
@@ -73,10 +73,10 @@ namespace Webim
 
             List<WebimEndpoint> buddies = new List<WebimEndpoint>();
             WebimEndpoint e = new WebimEndpoint("1", "user1");
-            e.PicUrl = "/static/images/male.png";
+            e.Avatar = "/static/images/male.png";
             buddies.Add(e);
             e = new WebimEndpoint("2", "user2");
-            e.PicUrl = "/static/images/female.png";
+            e.Avatar = "/static/images/female.png";
             buddies.Add(e);
             return buddies;
         }
@@ -87,13 +87,13 @@ namespace Webim
         * @param roomId
         * @return WebimRoom
         */
-        public WebimRoom findRoom(string roomId)
+        public WebimRoom FindRoom(string roomId)
         {
             // TODO: 示例代码，需要替换
             if (roomId.Equals("room1"))
             {
                 WebimRoom room = new WebimRoom("room1", "Room1");
-                room.PicUrl = "/static/images/room.png";
+                room.Avatar = "/static/images/room.png";
                 return room;
             }
             return null;
@@ -122,7 +122,7 @@ namespace Webim
             // TODO: 示例代码，需要替换
             List<WebimRoom> rooms = new List<WebimRoom>();
             WebimRoom room = new WebimRoom("room1", "Room1");
-            room.PicUrl = "/static/images/room.png";
+            room.Avatar = "/static/images/room.png";
             rooms.Add(room);
             return rooms;
         }
@@ -142,7 +142,7 @@ namespace Webim
             // TODO: 示例代码，需要替换
             List<WebimRoom> rooms = new List<WebimRoom>();
             WebimRoom room = new WebimRoom("room1", "Room1");
-            room.PicUrl = "/static/images/room.png";
+            room.Avatar = "/static/images/room.png";
             rooms.Add(room);
             return rooms;
         }
