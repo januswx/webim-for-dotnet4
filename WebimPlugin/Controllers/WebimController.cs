@@ -141,14 +141,12 @@ namespace Webim.Controllers
                 }
                 var buddyArray = (from b in buddies select b.Data()).ToArray();
                 var roomArray = (from g in rooms select g.Data()).ToArray();
-                data.Remove("presences");
                 data["success"] = true;
                 data["buddies"] = buddyArray;
                 data["rooms"] = roomArray;
                 data["server_time"] = Timestamp();
                 data["user"] = this.endpoint.Data();
                 return Json(data, JsonRequestBehavior.AllowGet);
-
             }
             catch (Exception e)
             {
@@ -227,7 +225,7 @@ namespace Webim.Controllers
         //POST: /Webim/Setting
         [HttpPost]
         public ActionResult Setting()
-        {   
+        {
             string data = Request["data"];
             model.SaveSetting(CurrentUid(), data);
             return Json("ok");
@@ -264,7 +262,6 @@ namespace Webim.Controllers
             IEnumerable<WebimHistory> histories = model.Histories(uid, id, type);
             return View(histories);
         }
-
 
         //GET: /Webim/Members
         [HttpGet]
@@ -312,7 +309,7 @@ namespace Webim.Controllers
         {
             WebimClient c = CurrentClient(Request["ticket"]);
             string id = Request["id"];
-            WebimRoom room = plugin.findRoom(id);
+            WebimRoom room = plugin.FindRoom(id);
             if(room == null) {
                 room = model.FindRoom(id);
             }

@@ -40,6 +40,7 @@
         layoutOptions: {
             unscalable: _IMC.is_visitor
         },
+        soundUrls: soundUrls,
 		buddyChatOptions: {
             downloadHistory: !_IMC.is_visitor,
 			//simple: _IMC.is_visitor,
