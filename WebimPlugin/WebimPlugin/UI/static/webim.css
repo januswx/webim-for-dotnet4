@@ -1,12 +1,12 @@
 /*!
- * Webim UI v5.1 
+ * Webim UI v5.4 
  * http://www.webim20.cn/
  *
  * Copyright (c) 2013 Arron
  * Released under the MIT, BSD, and GPL Licenses.
  *
- * Date: Fri Jan 10 22:23:54 2014 +0800
- * Commit: ac2b3a60253163624266c5a7a92c1dd0bac27cc7
+ * Date: Thu Dec 18 00:25:30 2014 +0800
+ * Commit: 28ab044bb049e4f0415dcc1278e7e9efacb8b8a1
  */
 
 body {
@@ -104,7 +104,7 @@ a .webim-icon, a .ui-icon{
 
 
 /*
- * jQuery UI CSS Framework 5.1 
+ * jQuery UI CSS Framework 5.4 
  *
  * Copyright 2010, AUTHORS.txt (http://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -213,9 +213,12 @@ a .webim-icon, a .ui-icon{
 .webim-icon-invisible{
 	background-position:-48px -80px;
 }
+
+/*
 .webim-icon-unavailable{
 	background-position:-64px -80px;
 }
+*/
 /*use bullet*/
 .webim-icon-available{
 	background-position:0 -64px;
@@ -310,6 +313,11 @@ a .webim-icon, a .ui-icon{
 .webim .webim-history *{
 		*background:url(about:blank);
 }
+.webim .webim-history-notice{
+	padding: 3px 8px;
+	margin: 5px 0;
+}
+
 
 /*
  * layout
@@ -451,12 +459,23 @@ a .webim-icon, a .ui-icon{
 		top: .4em;
 		position:absolute;
 }
+/*Notice: adjust width of chat window here*/
 .webim-layout .webim-window-window {
         position: absolute;
         bottom: 2.20em;
         z-index: 5;
         right: 0;
-        width: 20em;
+        width: 24em; /*20em*/
+}
+
+/*vsn 5.8 max window support*/
+.webim-maximized-window {
+	position: fixed !important;
+	right: 0px !important;
+	bottom: 0px !important;
+	z-index: 9999 !important;
+	width: 100% !important;
+	height: 100% !important;
 }
 
 .webim-layout .webim-window-content {
@@ -479,7 +498,7 @@ a .webim-icon, a .ui-icon{
         margin: 0 .1em;
 }
 .webim-layout .webim-window-header h4{
-        margin: 0;
+        margin: 0 0 0 24px;
         text-align: center;
         font-weight:normal;
         background:url(about:blank);/*events http://ued.koubei.com/?p=394*/
@@ -511,9 +530,13 @@ a .webim-icon, a .ui-icon{
         width: 19.7em;
 }
 
+/*Notice: adjust width of chat window here*/
+.webim-layout .webim-panels .webim-window-normal .webim-window-tab {
+    width: 23.85em !important; /*19.85em*/
+}
 
 .webim-layout .webim-buddy-window .webim-window-tab{
-        width: 13.6em;
+        width: 16em;
 }
 .webim-layout .webim-buddy-window .webim-window-tab h4{
 		margin-right: 0;
@@ -668,12 +691,12 @@ a .webim-icon, a .ui-icon{
 }
 
 .webim .webim-chat-content{
-	height: 16em;
+	height: 20em;
 	position: relative;
 }
 
 .webim .webim-chat-main{
-	height: 16em; 
+	height: 20em; 
 	overflow-y: auto;
 	overflow-x: hidden;
 	*background: url(about:blank);
@@ -704,7 +727,7 @@ a .webim-icon, a .ui-icon{
 	background: transparent;
 	overflow: auto;
 	width: 100%;
-	height: 3em;
+	height: 2em;
 	padding: .3em 0 .2em;
 }
 .webim .webim-chat .webim-chat-notice{
@@ -744,25 +767,25 @@ a .webim-icon, a .ui-icon{
 
 .webim .webim-member{
 	margin-top:  -1px;
-	height: 16em;
-	width: 7em;
-	left: -7.2em;
+	height: 20em; /*16em*/
+	width: 8em;
+	left: -8.2em;
 	position: absolute;
 }
 
 .webim .webim-chat .webim-member .webim-bgiframe{
 	top: -.1em;
 	left: -.1em;
-	width: 7.2em;
-	height: 16.2em;
+	width: 8.2em;
+	height: 20.2em;
 }
 .webim .webim-member h4{
 	height: 1.5em;
 	padding: .2em .3em 0;
 }
 .webim .webim-member ul{
-	height: 14.3em;
-	width: 7em;
+	height: 18.3em;
+	width: 8em;
 	position: absolute;
 	overflow-y:auto;
 	overflow-x:hidden;
@@ -869,6 +892,12 @@ a .webim-icon, a .ui-icon{
         padding: .2em .5em 0;
 }
 
+#webim-buddy ul h4 em{
+	float: left;
+	margin-left: -8px;
+	display: inline;
+}
+
 #webim-buddy ul li{
 }
 
@@ -944,7 +973,13 @@ a .webim-icon, a .ui-icon{
 
 #webim-buddy .webim-buddy-unavailable img{
 	filter:progid:DXImageTransform.Microsoft.BasicImage(grayscale=1);
-	-webkit-filter: grayscale(100%);
+    filter: gray; /* IE6-9 */
+	-webkit-filter: grayscale(100%); /*webkit*/
+}
+
+/* invisible -> unavailable icon */
+#webim-buddy li.webim-buddy-invisible .webim-icon-invisible{
+	background-position:-64px -64px;
 }
 
 
@@ -1246,11 +1281,11 @@ a .webim-icon, a .ui-icon{
 }
 
 #webim-room .webim-room-discussion-list li{
-	padding: 5px 10px;
+	padding: 0px 2px;
 }
 
 #webim-room .webim-room-discussion-list li input{
-	margin-right: 10px;
+	margin-right: 5px;
 }
 
 
@@ -1291,6 +1326,17 @@ a .webim-icon, a .ui-icon{
 
 .webim-chatlink-offline{
 	background-image:url(images/chat_offline.gif);
+}
+.webim-chaticon {
+	cursor:pointer;
+	padding-left: 1.2em;
+	background:url(images/chat_offline.gif) no-repeat 2px center;
+	display:inline;
+	*display:inline-block;
+}
+
+.webim-chaticon-online{
+	background-image:url(images/chat_online.gif);
 }
 .webim-notification {
         padding:1em .5em;
@@ -1445,14 +1491,3 @@ a .webim-icon, a .ui-icon{
 	-webkit-box-shadow:0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
-/*discuz X1*/
-#pcd .webim-chatlink{
-	padding-left: 0;
-	background-position: -30px 0;
-}
-
-/*discuz X1.5*/
-#pcd .ul_list .webim-chatlink{
-	background-position: 0px center;
-	padding-left: 20px;
-}
